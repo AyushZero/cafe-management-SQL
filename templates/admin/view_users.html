@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}View Users{% endblock %}
+
+{% block content %}
+  <h2>User Management</h2>
+  <p class="flash-warning">Warning: Deleting users can impact related records (reservations, orders). Deleting the only admin is prevented.</p>
+  {% if users %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>{{ user['id'] }}</td>
+            <td>{{ user['username'] }}</td>
+            <td>{{ user['role'] }}</td>
+            <td>{{ user['created_at'].strftime('%Y-%m-%d %H:%M') }}</td> {# Format timestamp #}
+            <td>
+              {# Prevent deleting self or the only admin directly in template too #}
+              {% if user['id'] != session['user_id'] %}
+                <form action="{{ url_for('admin_delete_user', user_id=user['id']) }}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}? This cannot be undone.');">
+                    <button type="submit" class="button-delete">Delete</button>
+                </form>
+              {% else %}
+                (Current User)
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No users found.</p>
+  {% endif %}
+  <p><a href="{{ url_for('admin_dashboard') }}" class="button-link mt-2">Back to Dashboard</a></p>
+{% endblock %}

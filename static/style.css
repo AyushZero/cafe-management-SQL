@@ -1,0 +1,303 @@
+/* static/style.css */
+
+/* Basic Reset & Font */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* Use Poppins font */
+    line-height: 1.7;
+    background-color: #f5f0e1; /* Light beige background - like crema */
+    color: #3d352f; /* Dark brown text - like roasted beans */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    color: #5e4a3d; /* Medium brown headings - rich coffee tone */
+    margin-bottom: 0.8em;
+    font-weight: 600; /* Bolder headings */
+}
+
+h2 {
+    border-bottom: 2px solid #d6b084; /* Light brown separator - cinnamon hint */
+    padding-bottom: 0.3em;
+    margin-bottom: 1em;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+a {
+    color: #a0785a; /* Medium-light brown links - caramel */
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: #77563d; /* Darker brown on hover */
+    text-decoration: underline;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1100px; /* Max width for content */
+    margin: 0 auto; /* Center the container */
+    padding: 0 15px; /* Add some padding on the sides */
+}
+
+/* Navbar */
+.navbar {
+    background-color: #3d352f; /* Dark brown navbar - strong coffee base */
+    color: #f5f0e1; /* Light beige text on navbar */
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar h1 a {
+    color: #ffffff; /* White title for contrast */
+    text-decoration: none;
+    font-size: 1.5em; /* Slightly larger title */
+    font-weight: 600;
+}
+
+.navbar h1 a:hover {
+    color: #d6b084; /* Light brown hover */
+    text-decoration: none;
+}
+
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+}
+
+.navbar ul li {
+    margin-left: 20px;
+}
+
+.navbar ul li span {
+    color: #d6b084; /* Light brown color for static text */
+    margin-right: 5px;
+}
+
+.navbar ul li a.nav-link {
+    color: #f5f0e1;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.navbar ul li a.nav-link:hover {
+    background-color: #5e4a3d; /* Medium brown hover */
+    text-decoration: none;
+    color: #ffffff;
+}
+
+
+/* Main Content Area */
+.content-area {
+    background-color: #fff8e1; /* Light yellow/cream - like milk in coffee */
+    padding: 30px; /* More padding inside content */
+    margin-top: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    flex-grow: 1; /* Make main content grow to fill space */
+}
+
+/* Forms */
+form label {
+    display: block;
+    margin-bottom: 5px; /* Space below label */
+    font-weight: 600; /* Bolder labels */
+    color: #4a3b31; /* Darker tan label */
+}
+
+form input[type=text],
+form input[type=password],
+form input[type=datetime-local],
+form input[type=number],
+form input[type=email],
+form select {
+    display: block; /* Ensure they take full width */
+    width: 100%;
+    padding: 12px 15px; /* More padding in inputs */
+    margin-bottom: 15px; /* Space below inputs */
+    border: 1px solid #d6b084; /* Light brown border */
+    border-radius: 4px;
+    font-size: 1em;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+form input:focus,
+form select:focus {
+    border-color: #a0785a; /* Caramel focus */
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(160, 120, 90, 0.25); /* Caramel focus shadow */
+}
+
+form input[type=submit],
+button,
+.button-link {
+    background-color: #8b4513; /* Chocolate brown button */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 10px; /* Space between buttons */
+}
+
+form input[type=submit]:hover,
+button:hover,
+.button-link:hover {
+    background-color: #65370f; /* Darker chocolate on hover */
+    text-decoration: none;
+    color: white;
+}
+
+/* Link styled as a less prominent button/action */
+.action-link {
+    display: inline-block;
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #77563d; /* Darker caramel for action links */
+}
+
+.action-link:hover {
+    color: #3d352f; /* Dark brown on hover */
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    background-color: #fffaf0; /* Light creamy white table background */
+}
+
+th, td {
+    padding: 12px 15px; /* More padding in cells */
+    text-align: left;
+    border-bottom: 1px solid #d6b084; /* Light brown border */
+}
+
+th {
+    background-color: #e6d7b9; /* Light tan header */
+    font-weight: 600;
+    color: #4a3b31; /* Darker tan header text */
+    text-transform: uppercase; /* Uppercase headers */
+    font-size: 0.9em;
+}
+
+tr:last-child td {
+    border-bottom: none; /* Remove border on last row */
+}
+
+tr:hover {
+    background-color: #f5f0e1; /* Light beige hover */
+}
+
+/* Flash Messages */
+.flashes-container {
+    margin-bottom: 20px;
+}
+
+.flash {
+    padding: 15px 20px; /* More padding */
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    font-size: 1em;
+    opacity: 0.95; /* Slightly transparent */
+}
+
+.flash-success {
+    background-color: #e6d7b9; /* Light tan background */
+    color: #4a3b31; /* Darker tan text */
+    border-color: #d6b084; /* Light brown border */
+}
+.flash-danger  { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; } /* Keep red for danger */
+.flash-warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; } /* Keep yellow for warning */
+.flash-info    { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; } /* Keep blue for info */
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px 0;
+    font-size: 0.9em;
+    color: #77563d; /* Darker caramel footer text */
+    border-top: 1px solid #d6b084; /* Light brown border */
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* Responsive adjustments (optional basic example) */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .navbar ul {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between; /* Space out links on small screens */
+    }
+     .navbar ul li {
+        margin-left: 0; /* Remove left margin */
+    }
+
+    .content-area {
+        padding: 20px;
+    }
+
+    h1 { font-size: 1.8em; }
+    h2 { font-size: 1.4em; }
+}
+
+.button-delete {
+    background-color: #d32f2f; /* Darker red for delete */
+    color: white;
+    padding: 8px 12px; /* Slightly smaller */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+    margin-left: 5px; /* Space from other actions */
+}
+
+.button-delete:hover {
+    background-color: #b71c1c; /* Even darker red on hover */
+}

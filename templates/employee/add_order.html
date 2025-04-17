@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Order for Reservation {{ reservation['id'] }}{% endblock %}
+
+{% block content %}
+  <h2>Order for Reservation #{{ reservation['id'] }}</h2>
+
+  {% if reservation %}
+  <div>
+      <strong>Customer:</strong> {{ reservation['customer_username'] }} <br>
+      <strong>Time:</strong> {{ reservation['reservation_time']  }} <br>
+      <strong>Guests:</strong> {{ reservation['num_guests'] }} <br>
+      <strong>Status:</strong> {{ reservation['status'] }}
+  </div>
+  <hr>
+  {% else %}
+    <p class="error">Reservation details not found.</p>
+  {% endif %}
+
+  <h3>Current Order Items (Order ID: {{ order_id if order_id else 'Pending' }})</h3>
+  {% if current_order_items %}
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Price/Item</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in current_order_items %}
+        <tr>
+          <td>{{ item['item_name'] }}</td>
+          <td>{{ item['quantity'] }}</td>
+          <td>₹{{ "%.2f"|format(item['price_per_item']) }}</td>
+           {# Calculate subtotal - Requires price_per_item to be a number #}
+          <td>₹{{ "%.2f"|format(item['quantity'] * item['price_per_item']) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+          <td><strong>₹{{ "%.2f"|format(current_total) }}</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  {% else %}
+    <p>No items added to this order yet.</p>
+  {% endif %}
+
+  <hr>
+
+  <h3>Add New Item</h3>
+  <form action="{{ url_for('employee_add_item', reservation_id=reservation['id']) }}" method="post">
+    <div class="form-group">
+      <label for="item_id">Select Item:</label>
+      <select name="item_id" id="item_id" required>
+        <option value="">-- Select an item --</option>
+        {% for item in menu_items %}
+          <option value="{{ item['id'] }}">{{ item['name'] }} - ₹{{ "%.2f"|format(item['price']) }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+       {# Optional: Add quantity input if needed, default is 1 in the backend #}
+      <label for="quantity">Quantity:</label>
+      <input type="number" name="quantity" id="quantity" value="1" min="1" style="width: 60px;">
+    </div>
+    <button type="submit" class="button-link">Add Item</button>
+  </form>
+
+  <p><a href="{{ url_for('employee_view_reservations') }}" class="button-link mt-2">Back to All Reservations</a></p>
+
+{% endblock %}

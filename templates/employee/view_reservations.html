@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}View All Reservations{% endblock %}
+
+{% block content %}
+  <h2>All Customer Reservations</h2>
+  {% if reservations %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Reservation Time</th>
+          <th>Guests</th>
+          <th>Status</th>
+          <th>Order Actions</th> {# Renamed column header #}
+        </tr>
+      </thead>
+      <tbody>
+        {% for reservation in reservations %}
+          <tr>
+            <td>{{ reservation['id'] }}</td>
+            <td>{{ reservation['customer_username'] }}</td>
+            <td>{{ reservation['reservation_time'].strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ reservation['num_guests'] }}</td>
+            <td>{{ reservation['status'] }}</td>
+            <td>
+              {# Link to the new add order page #}
+              <a href="{{ url_for('employee_add_order', reservation_id=reservation['id']) }}" class="button-link-small">Add/View Order</a>
+
+              {# Optional: You can still display existing completed order summaries here if needed #}
+              {# Or remove the old display logic from here as it's handled on the add_order page #}
+              {# {% if reservation['orders'] %} ... {% endif %} #}
+
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No reservations found.</p>
+  {% endif %}
+  <p><a href="{{ url_for('employee_dashboard') }}" class="button-link mt-2">Back to Dashboard</a></p>
+{% endblock %}

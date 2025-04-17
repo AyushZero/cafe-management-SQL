@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - View All Reservations{% endblock %}
+
+{% block content %}
+  <h2>All Customer Reservations (Admin View)</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if reservations %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Reservation Time</th>
+          <th>Guests</th>
+          <th>Status</th>
+          <th>Orders</th>
+          <th>Actions</th> {# Added Actions column #}
+        </tr>
+      </thead>
+      <tbody>
+        {% for reservation in reservations %}
+          <tr>
+            <td>{{ reservation['id'] }}</td>
+            <td>{{ reservation['customer_username'] }}</td>
+            <td>{{ reservation['reservation_time'].strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ reservation['num_guests'] }}</td>
+            <td>{{ reservation['status'] }}</td>
+            <td>
+              {# Existing Order Display Logic - Keep as is #}
+              {% if reservation['orders'] %}
+                <div style="margin-bottom: 10px;">
+                  {% for order in reservation['orders'] %}
+                    <div style="border: 1px solid #eee; padding: 8px; margin-bottom: 5px;">
+                      <strong>Order ID: {{ order['order_id'] }}</strong><br>
+                      Time: {{ order['order_time'] }}<br>
+                      Total: ${{ "%.2f"|format(order['total_amount']) }}<br> {# Added currency formatting #}
+                      Employee: {{ order['employee_username'] }}<br>
+                      Items:
+                      <ul style="list-style-type: none; padding-left: 10px;">
+                        {% for item in order['items'] %}
+                          <li>{{ item['quantity'] }} x {{ item['item_name'] }} at ${{ "%.2f"|format(item['price_per_item']) }} each</li> {# Added currency formatting #}
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                No orders for this reservation.
+              {% endif %}
+            </td>
+            <td>
+              {# Added Delete Button Form #}
+              <form action="{{ url_for('admin_delete_reservation', res_id=reservation['id']) }}" method="post" style="display: inline;">
+                  <button type="submit" class="button-link-danger button-link-small" onclick="return confirm('Are you sure you want to delete reservation #{{ reservation.id }} and all associated orders? This cannot be undone.');">
+                      Delete
+                  </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No reservations found.</p>
+  {% endif %}
+  <p><a href="{{ url_for('admin_dashboard') }}" class="button-link mt-2">Back to Dashboard</a></p>
+{% endblock %}

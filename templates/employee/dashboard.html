@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+  <h2>Welcome, {{ username }}! (Employee)</h2>
+  <p>Employee Actions:</p>
+  <ul>
+    <li><a href="{{ url_for('employee_add_customer') }}">Add New Customer</a></li>
+    <li><a href="{{ url_for('employee_add_reservation') }}">Add Reservation for Customer</a></li>
+    <li><a href="{{ url_for('employee_view_reservations') }}">View All Reservations</a></li>
+    <li><a href="{{ url_for('employee_view_customers') }}">View Customers</a></li>
+    </ul>
+{% endblock %}

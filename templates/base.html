@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Café Zero{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <h1 style="margin-top: 0.2em;"><a href="{{ url_for('index') }}">Café Zero</a></h1>
+
+          <ul>
+            {% if 'user_id' in session %}
+              <li><span>User: {{ session['username'] }} ({{ session['role'] }})</span></li>
+              <li><a href="{{ url_for('logout') }}" class="nav-link">Log Out</a></li>
+            {% else %}
+              <li><a href="{{ url_for('login') }}" class="nav-link">Log In</a></li>
+              <li><a href="{{ url_for('signup') }}" class="nav-link">Sign Up</a></li>
+            {% endif %}
+          </ul>
+      </div>
+    </nav>
+
+    <main class="container content-area">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flashes-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container">
+      <p>&copy; {{ current_year }} Café Zero</p> </footer>
+  </body>
+</html>

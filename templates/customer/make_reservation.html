@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Make Reservation{% endblock %}
+
+{% block content %}
+  <h2>Make a Reservation</h2>
+  <form method="post">
+     <label for="reservation_time">Date and Time:</label><br>
+     <input type="datetime-local" id="reservation_time" name="reservation_time" required><br>
+
+     <label for="num_guests">Number of Guests:</label><br>
+     <input type="number" id="num_guests" name="num_guests" min="1" required><br><br>
+
+     <input type="submit" value="Reserve Table">
+  </form>
+  <p><a href="{{ url_for('customer_dashboard') }}">Back to Dashboard</a></p>
+{% endblock %}

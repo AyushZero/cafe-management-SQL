@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Reservation{% endblock %}
+
+{% block content %}
+  <h2>Add Reservation for Customer</h2>
+  <form method="post">
+      <label for="customer_id">Customer:</label><br>
+      <select name="customer_id" id="customer_id" required>
+          <option value="">-- Select Customer --</option>
+          {% for customer in customers %}
+              <option value="{{ customer['id'] }}">{{ customer['username'] }}</option>
+          {% endfor %}
+      </select><br>
+
+     <label for="reservation_time">Date and Time:</label><br>
+     <input type="datetime-local" id="reservation_time" name="reservation_time" required><br>
+
+     <label for="num_guests">Number of Guests:</label><br>
+     <input type="number" id="num_guests" name="num_guests" min="1" required><br><br>
+
+     <input type="submit" value="Add Reservation">
+  </form>
+  <p><a href="{{ url_for('employee_dashboard') }}">Back to Dashboard</a></p>
+{% endblock %}

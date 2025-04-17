@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Employee{% endblock %}
+
+{% block content %}
+  <h2>Add New Employee Account</h2>
+  <form method="post">
+    <label for="username">Username</label><br>
+    <input type="text" id="username" name="username" required><br>
+
+    <label for="password">Password</label><br>
+    <input type="password" id="password" name="password" required><br>
+
+    <label for="confirm_password">Confirm Password</label><br>
+    <input type="password" id="confirm_password" name="confirm_password" required><br><br>
+
+    <input type="submit" value="Create Employee Account">
+  </form>
+   <p><a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a></p>
+{% endblock %}
