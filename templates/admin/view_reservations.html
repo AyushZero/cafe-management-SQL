@@ -41,12 +41,12 @@
                     <div style="border: 1px solid #eee; padding: 8px; margin-bottom: 5px;">
                       <strong>Order ID: {{ order['order_id'] }}</strong><br>
                       Time: {{ order['order_time'] }}<br>
-                      Total: ${{ "%.2f"|format(order['total_amount']) }}<br> {# Added currency formatting #}
+                      Total: ₹{{ "%.2f"|format(order['total_amount']) }}<br> {# Added currency formatting #}
                       Employee: {{ order['employee_username'] }}<br>
                       Items:
                       <ul style="list-style-type: none; padding-left: 10px;">
                         {% for item in order['items'] %}
-                          <li>{{ item['quantity'] }} x {{ item['item_name'] }} at ${{ "%.2f"|format(item['price_per_item']) }} each</li> {# Added currency formatting #}
+                          <li>{{ item['quantity'] }} x {{ item['item_name'] }} at ₹{{ "%.2f"|format(item['price_per_item']) }} each</li> {# Added currency formatting #}
                         {% endfor %}
                       </ul>
                     </div>

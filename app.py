@@ -3,9 +3,12 @@ import mysql.connector
 import os
 import datetime
 import decimal
-from flask import Flask, render_template, request, redirect, url_for, session, g, flash
+from flask import Flask, render_template, request, redirect, url_for, session, g, flash, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+import io
+import csv
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -19,37 +22,8 @@ MYSQL_CONFIG = {
     'raise_on_warnings': True
 }
 
-SAMPLE_ITEMS = [
-    {'id': 1, 'name': 'Espresso', 'price': 150.00},
-    {'id': 2, 'name': 'Latte', 'price': 220.00},
-    {'id': 3, 'name': 'Cappuccino', 'price': 200.00},
-    {'id': 5, 'name': 'Croissant', 'price': 180.00},
-    {'id': 6, 'name': 'Muffin', 'price': 120.00},
-    {'id': 7, 'name': 'Sandwich', 'price': 300.00},
-    {'id': 8, 'name': 'Americano', 'price': 180.00},
-    {'id': 9, 'name': 'Mocha', 'price': 250.00},
-    {'id': 10, 'name': 'Hot Chocolate', 'price': 230.00},
-    {'id': 11, 'name': 'Masala Chai', 'price': 100.00},
-    {'id': 12, 'name': 'Iced Latte', 'price': 250.00},
-    {'id': 13, 'name': 'Cold Coffee', 'price': 200.00},
-    {'id': 14, 'name': 'Iced Tea', 'price': 180.00},
-    {'id': 15, 'name': 'Lemonade', 'price': 150.00},
-    {'id': 16, 'name': 'Milkshake', 'price': 280.00},
-    {'id': 17, 'name': 'Smoothie', 'price': 350.00},
-    {'id': 18, 'name': 'Panini', 'price': 350.00},
-    {'id': 19, 'name': 'Burger', 'price': 400.00},
-    {'id': 20, 'name': 'Pasta', 'price': 450.00},
-    {'id': 21, 'name': 'Pizza Slice', 'price': 250.00},
-    {'id': 22, 'name': 'Garlic Bread', 'price': 200.00},
-    {'id': 23, 'name': 'French Fries', 'price': 150.00},
-    {'id': 24, 'name': 'Nachos', 'price': 280.00},
-    {'id': 25, 'name': 'Pastry', 'price': 200.00},
-    {'id': 26, 'name': 'Cake Slice', 'price': 250.00},
-    {'id': 27, 'name': 'Brownie', 'price': 220.00},
-    {'id': 28, 'name': 'Cookie', 'price': 100.00},
-    {'id': 29, 'name': 'Ginger Tea', 'price': 90.00},
-    {'id': 30, 'name': 'Green Tea', 'price': 120.00}
-]
+# Add this at the top of the file with other global variables
+trigger_initialized = False
 
 def get_db():
     """Opens a new database connection if there is none yet for the current application context."""
@@ -67,7 +41,7 @@ def get_db():
 @app.context_processor
 def inject_current_year():
     """Inject current year into templates."""
-    return {'current_year': datetime.datetime.now().year}
+    return {'current_year': datetime.now().year}
 
 @app.teardown_appcontext
 def close_db(error):
@@ -143,9 +117,10 @@ def employee_view_reservations():
             for order in orders_data:
                 order_id = order['order_id']
                 cursor.execute("""
-                    SELECT item_name, quantity, price_per_item
-                    FROM order_items
-                    WHERE order_id = %s
+                    SELECT oi.menu_item_id, oi.quantity, oi.price_per_item, mi.name as item_name
+                    FROM order_items oi
+                    JOIN menu_items mi ON oi.menu_item_id = mi.id
+                    WHERE oi.order_id = %s
                 """, (order_id,))
                 order['items'] = cursor.fetchall()
                 orders.append(order)
@@ -278,7 +253,7 @@ def admin_view_reservations():
         return render_template('admin/view_reservations.html', reservations=[], error="Database connection failed")
 
     try:
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(dictionary=True)  # Return rows as dictionaries
         cursor.execute("""
             SELECT r.id, r.reservation_time, r.num_guests, r.status, u.username AS customer_username
             FROM reservations r
@@ -302,9 +277,10 @@ def admin_view_reservations():
             for order in orders_data:
                 order_id = order['order_id']
                 cursor.execute("""
-                    SELECT item_name, quantity, price_per_item
-                    FROM order_items
-                    WHERE order_id = %s
+                    SELECT oi.menu_item_id, oi.quantity, oi.price_per_item, mi.name as item_name
+                    FROM order_items oi
+                    JOIN menu_items mi ON oi.menu_item_id = mi.id
+                    WHERE oi.order_id = %s
                 """, (order_id,))
                 order['items'] = cursor.fetchall()
                 orders.append(order)
@@ -590,10 +566,11 @@ def customer_view_orders(res_id):
             orders = []
             for order in orders_data:
                 cursor.execute("""
-                    SELECT item_name, quantity, price_per_item
-                    FROM order_items
-                    WHERE order_id = %s
-                    """, (order['order_id'],))
+                    SELECT oi.menu_item_id, oi.quantity, oi.price_per_item, mi.name as item_name
+                    FROM order_items oi
+                    JOIN menu_items mi ON oi.menu_item_id = mi.id
+                    WHERE oi.order_id = %s
+                """, (order['order_id'],))
                 order['items'] = cursor.fetchall()
                 orders.append(order)
         else:
@@ -735,6 +712,7 @@ def employee_add_order(reservation_id):
     order_details = None
     order_items = []
     current_total = decimal.Decimal('0.00')
+    menu_items = []
 
     try:
         cursor = db.cursor(dictionary=True)
@@ -757,12 +735,22 @@ def employee_add_order(reservation_id):
 
         if order_details:
             cursor.execute("""
-                SELECT item_name, quantity, price_per_item
-                FROM order_items
-                WHERE order_id = %s
+                SELECT oi.menu_item_id, oi.quantity, oi.price_per_item, mi.name as item_name
+                FROM order_items oi
+                JOIN menu_items mi ON oi.menu_item_id = mi.id
+                WHERE oi.order_id = %s
             """, (order_details['id'],))
             order_items = cursor.fetchall()
             current_total = decimal.Decimal(str(order_details['total_amount']))
+
+        # Get all available menu items, ordered by category and name
+        cursor.execute("""
+            SELECT id, name, price, category 
+            FROM menu_items 
+            WHERE is_available = TRUE 
+            ORDER BY category, name
+        """)
+        menu_items = cursor.fetchall()
 
         cursor.close()
 
@@ -774,7 +762,7 @@ def employee_add_order(reservation_id):
     return render_template(
         'employee/add_order.html',
         reservation=reservation,
-        menu_items=SAMPLE_ITEMS,
+        menu_items=menu_items,
         current_order_items=order_items,
         current_total=current_total,
         order_id=order_details['id'] if order_details else None
@@ -784,109 +772,120 @@ def employee_add_order(reservation_id):
 @login_required
 @role_required('employee')
 def employee_add_item(reservation_id):
-    db = get_db()
-    employee_id = session['user_id']
-    if not db or not db.is_connected():
-        flash("Database connection failed.", "danger")
-        return redirect(url_for('employee_add_order', reservation_id=reservation_id))
-
-    item_id_str = request.form.get('item_id')
-    quantity_str = request.form.get('quantity', '1')
-
-    if not item_id_str:
-        flash("No item selected.", "warning")
-        return redirect(url_for('employee_add_order', reservation_id=reservation_id))
-
     try:
-        item_id = int(item_id_str)
-        quantity = int(quantity_str)
-        if quantity <= 0:
-            flash("Quantity must be positive.", "warning")
-            return redirect(url_for('employee_add_order', reservation_id=reservation_id))
-
-        selected_item = next((item for item in SAMPLE_ITEMS if item['id'] == item_id), None)
-
-        if not selected_item:
-            flash("Selected item not found.", "danger")
-            return redirect(url_for('employee_add_order', reservation_id=reservation_id))
-
-        item_name = selected_item['name']
-        price_per_item = decimal.Decimal(str(selected_item['price']))
-        item_subtotal = price_per_item * quantity
-
-        cursor = None
-        order_id = None
-        customer_id = None
-
-        try:
-            cursor = db.cursor()
-            cursor.execute("SELECT customer_id FROM reservations WHERE id = %s", (reservation_id,))
-            reservation_data = cursor.fetchone()
-            if not reservation_data:
-                flash("Could not find reservation to link order.", "danger")
-                return redirect(url_for('employee_view_reservations'))
-            customer_id = reservation_data[0]
-
-            cursor.execute("SELECT id FROM orders WHERE reservation_id = %s LIMIT 1", (reservation_id,))
-            existing_order = cursor.fetchone()
-
-            if existing_order:
-                order_id = existing_order[0]
-            else:
-                cursor.execute(
-                    "INSERT INTO orders (reservation_id, employee_id, total_amount) VALUES (%s, %s, %s)",
-                    (reservation_id, employee_id, '0.00')
-                )
-                order_id = cursor.lastrowid
-                print(f"Created new order ID {order_id} for reservation {reservation_id}")
-
+        cursor = get_db().cursor()
+        employee_id = session['user_id']  # Get current employee's ID
+        
+        # Get the customer_id from the reservation
+        cursor.execute("SELECT customer_id FROM reservations WHERE id = %s", (reservation_id,))
+        reservation = cursor.fetchone()
+        if not reservation:
+            flash('Reservation not found', 'error')
+            return redirect(url_for('employee_reservations'))
+        
+        customer_id = reservation[0]  # Access first column of tuple
+        
+        # Check if an order exists for this reservation
+        cursor.execute("SELECT id FROM orders WHERE reservation_id = %s", (reservation_id,))
+        order = cursor.fetchone()
+        
+        if not order:
+            # Create a new order with all required fields
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute(
-                "INSERT INTO order_items (order_id, item_name, quantity, price_per_item) VALUES (%s, %s, %s, %s)",
-                (order_id, item_name, quantity, str(price_per_item))
+                """INSERT INTO orders 
+                   (reservation_id, customer_id, employee_id, status, order_time, total_amount) 
+                   VALUES (%s, %s, %s, 'pending', %s, 0.00)""",
+                (reservation_id, customer_id, employee_id, current_time)
             )
-            print(f"Added {quantity} x {item_name} to order {order_id}")
-
+            order_id = cursor.lastrowid
+            print(f"Created new order ID {order_id} for reservation {reservation_id}")
+        else:
+            order_id = order[0]  # Access first column of tuple
+        
+        # Get the item details
+        item_id = request.form.get('item_id')
+        quantity = int(request.form.get('quantity', 1))
+        
+        # Check if the menu item exists
+        cursor.execute("SELECT id, price FROM menu_items WHERE id = %s", (item_id,))
+        menu_item = cursor.fetchone()
+        if not menu_item:
+            flash('Menu item not found', 'error')
+            return redirect(url_for('employee_add_order', reservation_id=reservation_id))
+        
+        # Add the item to the order
+        cursor.execute(
+            "INSERT INTO order_items (order_id, menu_item_id, quantity, price_per_item) VALUES (%s, %s, %s, %s)",
+            (order_id, item_id, quantity, menu_item[1])  # Access second column (price) of tuple
+        )
+        
+        # Update the order total
+        cursor.execute(
+            "UPDATE orders SET total_amount = (SELECT SUM(quantity * price_per_item) FROM order_items WHERE order_id = %s) WHERE id = %s",
+            (order_id, order_id)
+        )
+        
+        # Get the updated order total
+        cursor.execute("SELECT total_amount FROM orders WHERE id = %s", (order_id,))
+        order_total = cursor.fetchone()[0]
+        
+        # Award loyalty points (1 point per ₹100 spent)
+        points = int(order_total / 100)  # 1 point per ₹100 spent
+        if points > 0:
+            # Update loyalty points in users table
             cursor.execute(
-                "SELECT SUM(quantity * price_per_item) AS total FROM order_items WHERE order_id = %s",
-                (order_id,)
+                "UPDATE users SET loyalty_points = loyalty_points + %s WHERE id = %s",
+                (points, customer_id)
             )
-            result = cursor.fetchone()
-            new_total = decimal.Decimal(str(result[0])) if result[0] is not None else decimal.Decimal('0.00')
-
-            cursor.execute("UPDATE orders SET total_amount = %s WHERE id = %s", (str(new_total), order_id))
-            print(f"Updated order {order_id} total to {new_total}")
-
-            if customer_id:
-                points_to_add = int(item_subtotal)
-                if points_to_add > 0:
-                    cursor.execute(
-                        "UPDATE users SET loyalty_points = loyalty_points + %s WHERE id = %s",
-                        (points_to_add, customer_id)
-                    )
-                    print(f"Awarded {points_to_add} loyalty points to customer {customer_id}")
-
-            db.commit()
-            flash(f"{quantity} x {item_name} added. {points_to_add if customer_id and points_to_add > 0 else 0} loyalty points awarded.", "success")
-
-        except mysql.connector.Error as e:
-            db.rollback()
-            print(f"MySQL Error adding item/updating points: {e}")
-            flash("Error adding item to order or updating points.", "danger")
-        except Exception as e:
-            db.rollback()
-            print(f"Generic Error adding item/updating points: {e}")
-            flash("An unexpected error occurred.", "danger")
-        finally:
-            if cursor:
-                cursor.close()
-
-    except ValueError:
-        flash("Invalid item ID or quantity.", "danger")
+            # Verify the update
+            cursor.execute("SELECT loyalty_points FROM users WHERE id = %s", (customer_id,))
+            updated_points = cursor.fetchone()[0]
+            print(f"Updated loyalty points for customer {customer_id} to {updated_points}")
+            flash(f'Awarded {points} loyalty points to customer', 'success')
+        
+        get_db().commit()
+        flash('Item added to order successfully', 'success')
+        
     except Exception as e:
-        print(f"Error processing add item form: {e}")
-        flash("An error occurred processing the request.", "danger")
-
+        get_db().rollback()
+        print(f"MySQL Error adding item/updating points: {e}")
+        flash('Error adding item to order', 'error')
+    finally:
+        cursor.close()
+    
     return redirect(url_for('employee_add_order', reservation_id=reservation_id))
+
+def init_loyalty_points_trigger():
+    """Initialize the loyalty points trigger."""
+    global trigger_initialized
+    if trigger_initialized:
+        return
+        
+    try:
+        cursor = get_db().cursor()
+        # Drop the old trigger if it exists
+        cursor.execute("DROP TRIGGER IF EXISTS update_loyalty_points")
+        # Create the new trigger
+        cursor.execute("""
+            CREATE TRIGGER update_loyalty_points
+            AFTER INSERT ON orders
+            FOR EACH ROW
+            BEGIN
+                UPDATE users
+                SET loyalty_points = loyalty_points + (NEW.total_amount * 0.10)
+                WHERE id = NEW.customer_id;
+            END
+        """)
+        get_db().commit()
+        print("Loyalty points trigger created successfully")
+        trigger_initialized = True
+    except Exception as e:
+        print(f"Error creating loyalty points trigger: {e}")
+        get_db().rollback()
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
 
 # --- Admin Routes ---
 
@@ -894,7 +893,64 @@ def employee_add_item(reservation_id):
 @login_required
 @role_required('admin')
 def admin_dashboard():
-    return render_template('admin/dashboard.html', username=session['username'])
+    db = get_db()
+    if not db or not db.is_connected():
+        flash("Database connection failed.", "danger")
+        return redirect(url_for('login'))
+
+    try:
+        cursor = db.cursor(dictionary=True)
+        
+        # Get total revenue
+        cursor.execute("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders")
+        total_revenue = cursor.fetchone()['total']
+        
+        # Get active customers (customers with orders in last 30 days)
+        cursor.execute("""
+            SELECT COUNT(DISTINCT customer_id) as count 
+            FROM orders 
+            WHERE order_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        """)
+        active_customers = cursor.fetchone()['count']
+        
+        # Get pending orders
+        cursor.execute("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'")
+        pending_orders = cursor.fetchone()['count']
+        
+        # Get recent orders
+        cursor.execute("""
+            SELECT o.id, o.total_amount, o.order_time, u.username as customer_username
+            FROM orders o
+            JOIN users u ON o.customer_id = u.id
+            ORDER BY o.order_time DESC
+            LIMIT 5
+        """)
+        recent_orders = cursor.fetchall()
+        
+        # Get recent reservations
+        cursor.execute("""
+            SELECT r.id, r.reservation_time, r.num_guests, u.username as customer_username
+            FROM reservations r
+            JOIN users u ON r.customer_id = u.id
+            ORDER BY r.reservation_time DESC
+            LIMIT 5
+        """)
+        recent_reservations = cursor.fetchall()
+        
+        return render_template('admin/dashboard.html',
+                             username=session['username'],
+                             total_revenue=total_revenue,
+                             active_customers=active_customers,
+                             pending_orders=pending_orders,
+                             recent_orders=recent_orders,
+                             recent_reservations=recent_reservations)
+                             
+    except mysql.connector.Error as e:
+        print(f"MySQL Error fetching dashboard data: {e}")
+        flash("Could not load dashboard data.", "danger")
+        return redirect(url_for('login'))
+    finally:
+        cursor.close()
 
 @app.route('/admin/add_employee', methods=['GET', 'POST'])
 @login_required
@@ -952,6 +1008,252 @@ def admin_add_employee():
             flash(error, 'danger')
 
     return render_template('admin/add_employee.html')
+
+@app.route('/admin/reports')
+@login_required
+@role_required('admin')
+def admin_reports():
+    # Get date range for the report
+    start_date = request.args.get('start_date', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
+    end_date = request.args.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+    
+    try:
+        cursor = get_db().cursor(dictionary=True)
+        
+        # Get daily sales data
+        cursor.execute("""
+            SELECT 
+                DATE(order_time) as date,
+                COUNT(DISTINCT id) as total_orders,
+                SUM(total_amount) as total_revenue,
+                COUNT(DISTINCT customer_id) as unique_customers
+            FROM orders
+            WHERE DATE(order_time) BETWEEN %s AND %s
+            GROUP BY DATE(order_time)
+            ORDER BY date DESC
+        """, (start_date, end_date))
+        daily_sales = cursor.fetchall()
+        
+        # Get top selling items
+        cursor.execute("""
+            SELECT 
+                mi.name,
+                mi.category,
+                SUM(oi.quantity) as total_quantity,
+                SUM(oi.quantity * oi.price_per_item) as total_revenue
+            FROM order_items oi
+            JOIN menu_items mi ON oi.menu_item_id = mi.id
+            JOIN orders o ON oi.order_id = o.id
+            WHERE DATE(o.order_time) BETWEEN %s AND %s
+            GROUP BY mi.id
+            ORDER BY total_quantity DESC
+            LIMIT 10
+        """, (start_date, end_date))
+        top_items = cursor.fetchall()
+        
+        # Get customer loyalty data
+        cursor.execute("""
+            SELECT 
+                u.username,
+                COUNT(DISTINCT o.id) as total_orders,
+                SUM(o.total_amount) as total_spent,
+                u.loyalty_points
+            FROM users u
+            JOIN orders o ON u.id = o.customer_id
+            WHERE DATE(o.order_time) BETWEEN %s AND %s
+            GROUP BY u.id
+            ORDER BY total_spent DESC
+            LIMIT 10
+        """, (start_date, end_date))
+        top_customers = cursor.fetchall()
+        
+        return render_template('admin/reports.html',
+                             daily_sales=daily_sales,
+                             top_items=top_items,
+                             top_customers=top_customers,
+                             start_date=start_date,
+                             end_date=end_date)
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+
+@app.route('/admin/reports/download')
+@login_required
+@role_required('admin')
+def download_report():
+    report_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    
+    try:
+        cursor = get_db().cursor()
+        
+        # Get daily sales data
+        cursor.execute("""
+            SELECT 
+                o.id as order_id,
+                o.total_amount,
+                o.customer_id,
+                u.username as customer_username,
+                o.order_time
+            FROM orders o
+            JOIN users u ON o.customer_id = u.id
+            WHERE DATE(o.order_time) = %s
+            ORDER BY o.order_time DESC
+        """, (report_date,))
+        
+        # Create CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Order ID', 'Total Amount', 'Customer ID', 'Customer Username', 'Order Time'])
+        
+        # Write data
+        for row in cursor.fetchall():
+            # Format the order time
+            formatted_row = list(row)
+            formatted_row[-1] = formatted_row[-1].strftime('%Y-%m-%d %H:%M:%S')
+            writer.writerow(formatted_row)
+        
+        # Prepare response
+        output.seek(0)
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename=daily_report_{report_date}.csv"}
+        )
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('admin_reports'))
+    finally:
+        cursor.close()
+
+@app.route('/admin/database/views')
+@login_required
+@role_required('admin')
+def admin_database_views():
+    try:
+        cursor = get_db().cursor(dictionary=True)
+        
+        # Get all views
+        cursor.execute("SHOW FULL TABLES WHERE TABLE_TYPE LIKE 'VIEW'")
+        views = cursor.fetchall()
+        
+        view_data = {}
+        for view in views:
+            view_name = list(view.values())[0]
+            
+            # Get view definition
+            cursor.execute(f"SHOW CREATE VIEW {view_name}")
+            create_view = cursor.fetchone()
+            
+            # Get view data
+            cursor.execute(f"SELECT * FROM {view_name}")
+            columns = [desc[0] for desc in cursor.description]
+            data = cursor.fetchall()
+            
+            view_data[view_name] = {
+                'definition': create_view['Create View'],
+                'columns': columns,
+                'data': data
+            }
+        
+        return render_template('admin/database_views.html', views=view_data)
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    finally:
+        cursor.close()
+
+@app.route('/admin/triggers')
+@login_required
+@role_required('admin')
+def admin_triggers():
+    try:
+        cursor = get_db().cursor(dictionary=True)
+        
+        # Get all triggers
+        cursor.execute("""
+            SELECT 
+                TRIGGER_NAME,
+                EVENT_MANIPULATION,
+                EVENT_OBJECT_TABLE,
+                ACTION_STATEMENT,
+                ACTION_TIMING
+            FROM information_schema.TRIGGERS 
+            WHERE TRIGGER_SCHEMA = %s
+        """, (MYSQL_CONFIG['database'],))
+        triggers = cursor.fetchall()
+        
+        # Get trigger effects (example: show loyalty points changes)
+        cursor.execute("""
+            SELECT 
+                u.username,
+                u.loyalty_points,
+                COUNT(o.id) as total_orders,
+                SUM(o.total_amount) as total_spent
+            FROM users u
+            LEFT JOIN orders o ON u.id = o.customer_id
+            WHERE u.role = 'customer'
+            GROUP BY u.id
+        """)
+        trigger_effects = cursor.fetchall()
+        
+        return render_template('admin/triggers.html', 
+                             triggers=triggers,
+                             trigger_effects=trigger_effects)
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    finally:
+        cursor.close()
+
+@app.route('/admin/cursors')
+@login_required
+@role_required('admin')
+def admin_cursors():
+    try:
+        cursor = get_db().cursor()
+        
+        # Call the stored procedure that uses cursors
+        cursor.callproc('generate_daily_report', [datetime.now().strftime('%Y-%m-%d')])
+        
+        # Get the results
+        results = []
+        for result in cursor.stored_results():
+            results = result.fetchall()
+        
+        # Get procedure information
+        cursor.execute("""
+            SELECT 
+                ROUTINE_NAME,
+                ROUTINE_DEFINITION
+            FROM information_schema.ROUTINES 
+            WHERE ROUTINE_SCHEMA = %s 
+            AND ROUTINE_TYPE = 'PROCEDURE'
+        """, (MYSQL_CONFIG['database'],))
+        procedures = cursor.fetchall()
+        
+        return render_template('admin/cursors.html',
+                             cursor_results=results,
+                             procedures=procedures)
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    finally:
+        cursor.close()
+
+# Replace the @app.before_first_request with @app.before_request
+@app.before_request
+def initialize_database():
+    """Initialize database components when the app starts."""
+    init_loyalty_points_trigger()
 
 # --- Main Execution ---
 if __name__ == '__main__':

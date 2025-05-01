@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Database Cursors and Stored Procedures{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Database Cursors and Stored Procedures</h2>
+    </div>
+
+    <!-- Stored Procedures Information -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Available Stored Procedures</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Procedure Name</th>
+                            <th>Description</th>
+                            <th>Parameters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>generate_daily_report</td>
+                            <td>Generates a detailed report of all orders for a specific date</td>
+                            <td>report_date (DATE)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sample Report -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Sample Daily Report</h5>
+            <p class="text-muted mb-3">This is a sample report generated using the stored procedure for today's date.</p>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Total Amount</th>
+                            <th>Customer ID</th>
+                            <th>Order Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in cursor_results %}
+                        <tr>
+                            <td>{{ result[0] }}</td>
+                            <td>₹{{ "%.2f"|format(result[1] or 0) }}</td>
+                            <td>{{ result[2] }}</td>
+                            <td>{{ result[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="button-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Database Triggers{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Database Triggers</h1>
+    
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mb-4">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Active Triggers</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Trigger Name</th>
+                            <th>Event</th>
+                            <th>Table</th>
+                            <th>Timing</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trigger in triggers %}
+                        <tr>
+                            <td>{{ trigger.TRIGGER_NAME }}</td>
+                            <td>{{ trigger.EVENT_MANIPULATION }}</td>
+                            <td>{{ trigger.EVENT_OBJECT_TABLE }}</td>
+                            <td>{{ trigger.ACTION_TIMING }}</td>
+                            <td><code>{{ trigger.ACTION_STATEMENT }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Trigger Effects (Loyalty Points)</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Loyalty Points</th>
+                            <th>Total Orders</th>
+                            <th>Total Spent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for effect in trigger_effects %}
+                        <tr>
+                            <td>{{ effect.username }}</td>
+                            <td>{{ effect.loyalty_points }}</td>
+                            <td>{{ effect.total_orders }}</td>
+                            <td>₹{{ "%.2f"|format(effect.total_spent or 0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %} 

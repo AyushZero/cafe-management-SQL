@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Sales Reports</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Date Range Selection -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                           value="{{ end_date }}" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Daily Sales Summary -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Daily Sales Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Total Orders</th>
+                            <th>Total Revenue</th>
+                            <th>Unique Customers</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in daily_sales %}
+                        <tr>
+                            <td>{{ sale.date }}</td>
+                            <td>{{ sale.total_orders }}</td>
+                            <td>₹{{ "%.2f"|format(sale.total_revenue) }}</td>
+                            <td>{{ sale.unique_customers }}</td>
+                            <td>
+                                <a href="{{ url_for('download_report', date=sale.date) }}" class="btn btn-sm btn-outline-primary">
+                                    Download Report
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Selling Items -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Top Selling Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Quantity Sold</th>
+                            <th>Total Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.total_quantity }}</td>
+                            <td>₹{{ "%.2f"|format(item.total_revenue) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Customers -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Top Customers</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Total Orders</th>
+                            <th>Total Spent</th>
+                            <th>Loyalty Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in top_customers %}
+                        <tr>
+                            <td>{{ customer.username }}</td>
+                            <td>{{ customer.total_orders }}</td>
+                            <td>₹{{ "%.2f"|format(customer.total_spent) }}</td>
+                            <td>{{ customer.loyalty_points }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Set max date to today
+    document.getElementById('end_date').max = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').max = new Date().toISOString().split('T')[0];
+    
+    // Set default dates if not provided
+    if (!document.getElementById('start_date').value) {
+        const defaultStartDate = new Date();
+        defaultStartDate.setDate(defaultStartDate.getDate() - 7);
+        document.getElementById('start_date').value = defaultStartDate.toISOString().split('T')[0];
+    }
+    if (!document.getElementById('end_date').value) {
+        document.getElementById('end_date').value = new Date().toISOString().split('T')[0];
+    }
+</script>
+{% endblock %}
+{% endblock %} 

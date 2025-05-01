@@ -1,14 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Order for Reservation {{ reservation['id'] }}{% endblock %}
+{% block title %}Add Order{% endblock %}
 
 {% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Add Order for Reservation</h2>
+        <a href="{{ url_for('employee_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
   <h2>Order for Reservation #{{ reservation['id'] }}</h2>
 
   {% if reservation %}
   <div>
       <strong>Customer:</strong> {{ reservation['customer_username'] }} <br>
-      <strong>Time:</strong> {{ reservation['reservation_time']  }} <br>
+      <strong>Time:</strong> {{ reservation['reservation_time'] }} <br>
       <strong>Guests:</strong> {{ reservation['num_guests'] }} <br>
       <strong>Status:</strong> {{ reservation['status'] }}
   </div>
@@ -19,7 +27,7 @@
 
   <h3>Current Order Items (Order ID: {{ order_id if order_id else 'Pending' }})</h3>
   {% if current_order_items %}
-    <table>
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Item</th>
@@ -34,7 +42,6 @@
           <td>{{ item['item_name'] }}</td>
           <td>{{ item['quantity'] }}</td>
           <td>₹{{ "%.2f"|format(item['price_per_item']) }}</td>
-           {# Calculate subtotal - Requires price_per_item to be a number #}
           <td>₹{{ "%.2f"|format(item['quantity'] * item['price_per_item']) }}</td>
         </tr>
         {% endfor %}
@@ -56,21 +63,20 @@
   <form action="{{ url_for('employee_add_item', reservation_id=reservation['id']) }}" method="post">
     <div class="form-group">
       <label for="item_id">Select Item:</label>
-      <select name="item_id" id="item_id" required>
+      <select name="item_id" id="item_id" class="form-control" required>
         <option value="">-- Select an item --</option>
         {% for item in menu_items %}
-          <option value="{{ item['id'] }}">{{ item['name'] }} - ₹{{ "%.2f"|format(item['price']) }}</option>
+          <option value="{{ item['id'] }}">{{ item['name'] }} ({{ item['category'] }}) - ₹{{ "%.2f"|format(item['price']) }}</option>
         {% endfor %}
       </select>
     </div>
     <div class="form-group">
-       {# Optional: Add quantity input if needed, default is 1 in the backend #}
       <label for="quantity">Quantity:</label>
-      <input type="number" name="quantity" id="quantity" value="1" min="1" style="width: 60px;">
+      <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" style="width: 100px;">
     </div>
-    <button type="submit" class="button-link">Add Item</button>
+    <button type="submit" class="btn btn-primary">Add Item</button>
   </form>
 
-  <p><a href="{{ url_for('employee_view_reservations') }}" class="button-link mt-2">Back to All Reservations</a></p>
-
+  <p><a href="{{ url_for('employee_view_reservations') }}" class="btn btn-secondary mt-2">Back to All Reservations</a></p>
+</div>
 {% endblock %}
