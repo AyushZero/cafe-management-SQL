@@ -1,44 +1,95 @@
 {% extends 'base.html' %}
 
-{% block title %}View All Reservations{% endblock %}
+{% block title %}View Reservations{% endblock %}
 
 {% block content %}
-  <h2>All Customer Reservations</h2>
-  {% if reservations %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Customer</th>
-          <th>Reservation Time</th>
-          <th>Guests</th>
-          <th>Status</th>
-          <th>Order Actions</th> {# Renamed column header #}
-        </tr>
-      </thead>
-      <tbody>
-        {% for reservation in reservations %}
-          <tr>
-            <td>{{ reservation['id'] }}</td>
-            <td>{{ reservation['customer_username'] }}</td>
-            <td>{{ reservation['reservation_time'].strftime('%Y-%m-%d %H:%M') }}</td>
-            <td>{{ reservation['num_guests'] }}</td>
-            <td>{{ reservation['status'] }}</td>
-            <td>
-              {# Link to the new add order page #}
-              <a href="{{ url_for('employee_add_order', reservation_id=reservation['id']) }}" class="button-link-small">Add/View Order</a>
-
-              {# Optional: You can still display existing completed order summaries here if needed #}
-              {# Or remove the old display logic from here as it's handled on the add_order page #}
-              {# {% if reservation['orders'] %} ... {% endif %} #}
-
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No reservations found.</p>
-  {% endif %}
-  <p><a href="{{ url_for('employee_dashboard') }}" class="button-link mt-2">Back to Dashboard</a></p>
+<div class="container mt-4">
+    <h2>Reservations</h2>
+    
+    <!-- Active Reservations -->
+    <h3 class="mt-4">Active Reservations</h3>
+    {% if reservations %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Reservation Time</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                    <th>Order Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                    {% if reservation['status'] != 'completed' %}
+                    <tr>
+                        <td>{{ reservation['id'] }}</td>
+                        <td>{{ reservation['customer_username'] }}</td>
+                        <td>{{ reservation['reservation_time'].strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ reservation['num_guests'] }}</td>
+                        <td>{{ reservation['status'] }}</td>
+                        <td>
+                            {% if reservation['orders'] %}
+                                {% for order in reservation['orders'] %}
+                                    <a href="{{ url_for('employee_add_order', reservation_id=reservation['id']) }}" class="btn btn-primary btn-sm">
+                                        {% if order['status'] == 'delivered' %}View Order{% else %}Add/Edit Order{% endif %}
+                                    </a>
+                                {% endfor %}
+                            {% else %}
+                                <a href="{{ url_for('employee_add_order', reservation_id=reservation['id']) }}" class="btn btn-primary btn-sm">Add Order</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No active reservations found.</p>
+    {% endif %}
+    <br>
+    <!-- Completed Reservations -->
+    <h3 class="mt-4">Completed Reservations</h3>
+    {% if reservations %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Reservation Time</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                    <th>Order Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                    {% if reservation['status'] == 'completed' %}
+                    <tr>
+                        <td>{{ reservation['id'] }}</td>
+                        <td>{{ reservation['customer_username'] }}</td>
+                        <td>{{ reservation['reservation_time'].strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ reservation['num_guests'] }}</td>
+                        <td>{{ reservation['status'] }}</td>
+                        <td>
+                            {% if reservation['orders'] %}
+                                {% for order in reservation['orders'] %}
+                                    <a href="{{ url_for('employee_add_order', reservation_id=reservation['id']) }}" class="btn btn-secondary btn-sm">View Order</a>
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No completed reservations found.</p>
+    {% endif %}
+    <br>
+    <a href="{{ url_for('employee_dashboard') }}" class="button-link">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
 {% endblock %}

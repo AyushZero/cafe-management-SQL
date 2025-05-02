@@ -774,16 +774,22 @@ def employee_add_order(reservation_id):
 def employee_add_item(reservation_id):
     try:
         cursor = get_db().cursor()
-        employee_id = session['user_id']  # Get current employee's ID
+        employee_id = session['user_id']
         
-        # Get the customer_id from the reservation
-        cursor.execute("SELECT customer_id FROM reservations WHERE id = %s", (reservation_id,))
+        # Check if reservation is completed
+        cursor.execute("SELECT status FROM reservations WHERE id = %s", (reservation_id,))
         reservation = cursor.fetchone()
         if not reservation:
             flash('Reservation not found', 'error')
-            return redirect(url_for('employee_reservations'))
+            return redirect(url_for('employee_view_reservations'))
+            
+        if reservation[0] == 'completed':
+            flash('Cannot add items to a completed order', 'error')
+            return redirect(url_for('employee_add_order', reservation_id=reservation_id))
         
-        customer_id = reservation[0]  # Access first column of tuple
+        # Get the customer_id from the reservation
+        cursor.execute("SELECT customer_id FROM reservations WHERE id = %s", (reservation_id,))
+        customer_id = cursor.fetchone()[0]
         
         # Check if an order exists for this reservation
         cursor.execute("SELECT id FROM orders WHERE reservation_id = %s", (reservation_id,))
@@ -799,9 +805,8 @@ def employee_add_item(reservation_id):
                 (reservation_id, customer_id, employee_id, current_time)
             )
             order_id = cursor.lastrowid
-            print(f"Created new order ID {order_id} for reservation {reservation_id}")
         else:
-            order_id = order[0]  # Access first column of tuple
+            order_id = order[0]
         
         # Get the item details
         item_id = request.form.get('item_id')
@@ -817,7 +822,7 @@ def employee_add_item(reservation_id):
         # Add the item to the order
         cursor.execute(
             "INSERT INTO order_items (order_id, menu_item_id, quantity, price_per_item) VALUES (%s, %s, %s, %s)",
-            (order_id, item_id, quantity, menu_item[1])  # Access second column (price) of tuple
+            (order_id, item_id, quantity, menu_item[1])
         )
         
         # Update the order total
@@ -831,41 +836,86 @@ def employee_add_item(reservation_id):
         
     except Exception as e:
         get_db().rollback()
-        print(f"MySQL Error adding item: {e}")
+        print(f"Error adding item: {e}")
         flash('Error adding item to order', 'error')
     finally:
         cursor.close()
     
     return redirect(url_for('employee_add_order', reservation_id=reservation_id))
 
-@app.route('/employee/order/complete/<int:reservation_id>', methods=['POST'])
+@app.route('/employee/order/complete/<int:reservation_id>', methods=['GET'])
 @login_required
 @role_required('employee')
-def complete_order(reservation_id):
+def show_payment_form(reservation_id):
     try:
-        cursor = get_db().cursor()
+        cursor = get_db().cursor(dictionary=True)
         
         # Get the order details
         cursor.execute("""
-            SELECT o.id, o.customer_id, o.total_amount, r.status
+            SELECT o.id, o.reservation_id, o.total_amount, u.username AS customer_username
             FROM orders o
-            JOIN reservations r ON o.reservation_id = r.id
+            JOIN users u ON o.customer_id = u.id
             WHERE o.reservation_id = %s
         """, (reservation_id,))
+        order = cursor.fetchone()
+        
+        if not order:
+            flash('Order not found', 'error')
+            return redirect(url_for('employee_view_reservations'))
+        
+        # Get available payment methods
+        cursor.execute("SELECT id, name FROM payment_methods")
+        payment_methods = cursor.fetchall()
+        
+        return render_template('employee/payment.html', 
+                             order=order,
+                             payment_methods=payment_methods)
+        
+    except Exception as e:
+        print(f"Error showing payment form: {e}")
+        flash('Error loading payment form', 'error')
+        return redirect(url_for('employee_view_reservations'))
+    finally:
+        cursor.close()
+
+@app.route('/employee/order/payment/<int:order_id>', methods=['POST'])
+@login_required
+@role_required('employee')
+def process_payment(order_id):
+    try:
+        cursor = get_db().cursor()
+        
+        # Get payment details from form
+        payment_method_id = request.form['payment_method']
+        amount = decimal.Decimal(request.form['amount'])
+        
+        # Get order details
+        cursor.execute("""
+            SELECT o.id, o.reservation_id, o.customer_id, o.total_amount, r.status
+            FROM orders o
+            JOIN reservations r ON o.reservation_id = r.id
+            WHERE o.id = %s
+        """, (order_id,))
         order_data = cursor.fetchone()
         
         if not order_data:
             flash('Order not found', 'error')
             return redirect(url_for('employee_view_reservations'))
             
-        order_id, customer_id, total_amount, reservation_status = order_data
+        order_id, reservation_id, customer_id, total_amount, reservation_status = order_data
         
         if reservation_status == 'completed':
             flash('This order has already been completed', 'warning')
             return redirect(url_for('employee_view_reservations'))
         
+        # Record the payment
+        cursor.execute("""
+            INSERT INTO order_payments (order_id, payment_method_id, amount, status)
+            VALUES (%s, %s, %s, 'completed')
+        """, (order_id, payment_method_id, amount))
+        
         # Calculate loyalty points (10% of total amount)
-        points = decimal.Decimal(str(total_amount)) * decimal.Decimal('0.10')
+        points = total_amount * decimal.Decimal('0.10')
         
         # Update loyalty points
         cursor.execute(
@@ -879,19 +929,19 @@ def complete_order(reservation_id):
             (reservation_id,)
         )
         
-        # Mark order as delivered (using the correct ENUM value)
+        # Mark order as delivered
         cursor.execute(
             "UPDATE orders SET status = 'delivered' WHERE id = %s",
             (order_id,)
         )
         
         get_db().commit()
-        flash(f'Order completed successfully! Awarded {points:.2f} loyalty points to customer.', 'success')
+        flash(f'Payment processed successfully! Awarded {points:.2f} loyalty points to customer.', 'success')
         
     except Exception as e:
         get_db().rollback()
-        print(f"MySQL Error completing order: {e}")
-        flash('Error completing order', 'error')
+        print(f"Error processing payment: {e}")
+        flash('Error processing payment', 'error')
     finally:
         cursor.close()
     

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Process Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Process Payment</h2>
+            
+            <!-- Order Summary -->
+            <div class="mb-4">
+                <h4>Order Summary</h4>
+                <p><strong>Order ID:</strong> {{ order.id }}</p>
+                <p><strong>Customer:</strong> {{ order.customer_username }}</p>
+                <p><strong>Total Amount:</strong> ₹{{ "%.2f"|format(order.total_amount) }}</p>
+            </div>
+
+            <!-- Payment Form -->
+            <form action="{{ url_for('process_payment', order_id=order.id) }}" method="POST">
+                <div class="mb-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="payment_method" name="payment_method" required>
+                        <option value="">Select Payment Method</option>
+                        {% for method in payment_methods %}
+                        <option value="{{ method.id }}">{{ method.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input type="number" class="form-control" id="amount" name="amount" 
+                           value="{{ "%.2f"|format(order.total_amount) }}" step="0.01" min="0" required>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('employee_add_order', reservation_id=order.reservation_id) }}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Order
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Complete Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

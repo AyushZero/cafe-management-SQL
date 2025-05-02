@@ -5,8 +5,7 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Add Order for Reservation</h2>
-        
+        <h2>{% if reservation['status'] == 'completed' %}View Order{% else %}Add Order{% endif %} for Reservation</h2>
     </div>
 
     <h2>Order for Reservation #{{ reservation['id'] }}</h2>
@@ -23,7 +22,7 @@
       <p class="error">Reservation details not found.</p>
     {% endif %}
 
-    <h3>Current Order Items (Order ID: {{ order_id if order_id else 'Pending' }})</h3>
+    <h3>Order Items (Order ID: {{ order_id if order_id else 'Pending' }})</h3>
     {% if current_order_items %}
       <table class="table table-striped">
         <thead>
@@ -55,8 +54,8 @@
       <p>No items added to this order yet.</p>
     {% endif %}
 
+    {% if reservation['status'] != 'completed' %}
     <hr>
-
     <h3>Add New Item</h3>
     <form action="{{ url_for('employee_add_item', reservation_id=reservation['id']) }}" method="post">
       <div class="form-group">
@@ -78,15 +77,14 @@
     <hr>
     <br>
     <div class="text-center mt-4">
-        <form action="{{ url_for('complete_order', reservation_id=reservation['id']) }}" method="POST" class="d-inline">
-            <button type="submit" class="btn btn-success btn-lg">
-                <i class="fas fa-check"></i> Complete Order
-            </button>
-        </form>
-      </div>
-      <a href="{{ url_for('employee_view_reservations') }}" class="button-link">
-          <i class="fas fa-arrow-left"></i> Back to Reservations
-      </a>
+        <a href="{{ url_for('show_payment_form', reservation_id=reservation['id']) }}" class="btn btn-success btn-lg">
+            <i class="fas fa-check"></i> Complete Order
+        </a>
+    </div>
+    {% endif %}
     
+    <a href="{{ url_for('employee_view_reservations') }}" class="button-link">
+        <i class="fas fa-arrow-left"></i> Back to Reservations
+    </a>
 </div>
 {% endblock %}
