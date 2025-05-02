@@ -494,7 +494,10 @@ def customer_make_reservation():
                 return redirect(url_for('customer_view_reservations'))
             except mysql.connector.Error as e:
                 print(f"MySQL Error during reservation insert: {e}")
-                error = "An error occurred making the reservation."
+                if e.errno == 1644:  # Custom error code for the trigger
+                    error = "Reservation time cannot be in the past. Please select a future date and time."
+                else:
+                    error = "An error occurred making the reservation."
                 flash(error, 'danger')
                 db.rollback()
             finally:
@@ -689,7 +692,10 @@ def employee_add_reservation():
                 return redirect(url_for('employee_dashboard'))
             except mysql.connector.Error as e:
                 print(f"MySQL Error employee adding reservation: {e}")
-                error = "An error occurred adding the reservation."
+                if e.errno == 1644:  # Custom error code for the trigger
+                    error = "Reservation time cannot be in the past. Please select a future date and time."
+                else:
+                    error = "An error occurred adding the reservation."
                 flash(error, 'danger')
                 db.rollback()
             finally:
