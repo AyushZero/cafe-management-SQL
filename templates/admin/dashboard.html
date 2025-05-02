@@ -14,13 +14,13 @@
             <div class="card">
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="stat-item bg-primary text-white px-3 py-2 rounded">
+                        <div class=" px-3 py-2 rounded">
                             <span class="h5 mb-0">Total Revenue: ₹{{ "%.2f"|format(total_revenue) }}</span>
                         </div>
-                        <div class="stat-item bg-success text-white px-3 py-2 rounded">
+                        <div class=" px-3 py-2 rounded">
                             <span class="h5 mb-0">Active Customers: {{ active_customers }}</span>
                         </div>
-                        <div class="stat-item bg-warning text-white px-3 py-2 rounded">
+                        <div class=" px-3 py-2 rounded">
                             <span class="h5 mb-0">Pending Orders: {{ pending_orders }}</span>
                         </div>
                     </div>
@@ -36,12 +36,12 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Quick Actions</h5>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ url_for('admin_view_users') }}" class="btn btn-primary">Manage Users</a>
-                        <a href="{{ url_for('admin_view_reservations') }}" class="btn btn-info">View Reservations</a>
-                        <a href="{{ url_for('admin_reports') }}" class="btn btn-success">Reports</a>
-                        <a href="{{ url_for('admin_triggers') }}" class="btn btn-secondary">Database Triggers</a>
-                        <a href="{{ url_for('admin_cursors') }}" class="btn btn-dark">Stored Procedures</a>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a href="{{ url_for('admin_view_users') }}" class="btn btn-primary button-link">Manage Users</a>
+                        <a href="{{ url_for('admin_view_reservations') }}" class="btn btn-info button-link">View Reservations</a>
+                        <a href="{{ url_for('admin_reports') }}" class="btn btn-success button-link">Reports</a>
+                        <a href="{{ url_for('admin_triggers') }}" class="btn btn-secondary button-link">Database Triggers</a>
+                        <a href="{{ url_for('admin_cursors') }}" class="btn btn-dark button-link">Stored Procedures</a>
                     </div>
                 </div>
             </div>
@@ -114,31 +114,59 @@
 
 <style>
 .card {
-    transition: transform 0.2s;
+    transition: none;
 }
 .card:hover {
-    transform: translateY(-5px);
+    transform: none;
 }
 .btn {
     padding: 0.5rem 1.5rem;
+    font-family: 'Montserrat', sans-serif;
 }
 .table-responsive {
-    max-height: 300px;
     overflow-y: auto;
+    background: transparent;
 }
 .card-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 .card-text {
     font-size: 1.8rem;
     margin-bottom: 0;
 }
 .stat-item {
-    transition: transform 0.2s;
+    transition: none;
+    background: rgba(245, 240, 225, 0.9) !important;
+    color: var(--text-color) !important;
 }
 .stat-item:hover {
-    transform: scale(1.05);
+    transform: none;
+}
+.table {
+    background: transparent;
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+.table thead th {
+    background: rgba(245, 240, 225, 0.9);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.5);
+}
+.table tbody tr {
+    background: rgba(255, 255, 255, 0.7);
+}
+.table tbody tr:hover {
+    background: rgba(245, 240, 225, 0.7);
+}
+.table tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.2);
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
 }
 </style>
 {% endblock %}

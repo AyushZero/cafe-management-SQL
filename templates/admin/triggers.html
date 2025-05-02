@@ -13,7 +13,7 @@
         <div class="card-body">
             <h5 class="card-title">Active Triggers</h5>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Trigger Name</th>
@@ -44,7 +44,7 @@
         <div class="card-body">
             <h5 class="card-title">Trigger Effects</h5>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Customer</th>
@@ -77,16 +77,50 @@
 </div>
 
 <style>
-    pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-radius: 4px;
-    }
-    .table-responsive {
-        max-height: 500px;
-        overflow-y: auto;
-    }
+.card {
+    transition: none;
+}
+.card:hover {
+    transform: none;
+}
+.table {
+    background: transparent;
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+.table thead th {
+    background: rgba(245, 240, 225, 0.9);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.5);
+}
+.table tbody tr {
+    background: rgba(255, 255, 255, 0.7);
+}
+.table tbody tr:hover {
+    background: rgba(245, 240, 225, 0.7);
+}
+.table tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.2);
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+.card-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+}
+code {
+    background: rgba(245, 240, 225, 0.5);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    color: var(--text-color);
+}
 </style>
 {% endblock %} 

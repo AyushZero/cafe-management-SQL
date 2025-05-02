@@ -13,7 +13,7 @@
         <div class="card-body">
             <h5 class="card-title">Available Stored Procedures</h5>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Procedure Name</th>
@@ -37,9 +37,9 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Sample Daily Report</h5>
-            <p class="text-muted mb-3">This is a sample report generated using the stored procedure for today's date.</p>
+            <p class="text-muted mb-3 text-center">This is a sample report generated using the stored procedure for today's date.</p>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Order ID</th>
@@ -70,4 +70,46 @@
         </a>
     </div>
 </div>
+
+<style>
+.card {
+    transition: none;
+}
+.card:hover {
+    transform: none;
+}
+.table {
+    background: transparent;
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+.table thead th {
+    background: rgba(245, 240, 225, 0.9);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.5);
+}
+.table tbody tr {
+    background: rgba(255, 255, 255, 0.7);
+}
+.table tbody tr:hover {
+    background: rgba(245, 240, 225, 0.7);
+}
+.table tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.2);
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+.card-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+}
+</style>
 {% endblock %} 

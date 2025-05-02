@@ -452,7 +452,7 @@ def signup():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'info')
+    flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
 # --- Customer Routes ---
@@ -461,7 +461,28 @@ def logout():
 @login_required
 @role_required('customer')
 def customer_dashboard():
-    return render_template('customer/dashboard.html', username=session['username'])
+    # Get customer's loyalty points
+    cursor = get_db().cursor(dictionary=True)
+    cursor.execute('SELECT loyalty_points FROM users WHERE id = %s', (session['user_id'],))
+    customer = cursor.fetchone()
+    loyalty_points = customer['loyalty_points'] if customer else 0
+
+    # Get active reservations
+    cursor.execute('''
+        SELECT id, reservation_time, num_guests, status 
+        FROM reservations 
+        WHERE customer_id = %s 
+        AND status != 'completed'
+        AND reservation_time >= NOW()
+        ORDER BY reservation_time ASC
+    ''', (session['user_id'],))
+    active_reservations = cursor.fetchall()
+    cursor.close()
+
+    return render_template('customer/dashboard.html', 
+                         username=session.get('username'),
+                         loyalty_points=loyalty_points,
+                         active_reservations=active_reservations)
 
 @app.route('/customer/reserve', methods=['GET', 'POST'])
 @login_required
@@ -1292,7 +1313,7 @@ def admin_triggers():
                 u.username,
                 u.loyalty_points,
                 COUNT(o.id) as total_orders,
-                SUM(o.total_amount) as total_spent
+                COALESCE(SUM(o.total_amount), 0) as total_spent
             FROM users u
             LEFT JOIN orders o ON u.id = o.customer_id
             WHERE u.role = 'customer'
@@ -1343,6 +1364,72 @@ def admin_cursors():
     except mysql.connector.Error as e:
         flash(f'Database error: {str(e)}', 'danger')
         return redirect(url_for('admin_dashboard'))
+    finally:
+        cursor.close()
+
+@app.route('/admin/download_reports')
+@login_required
+@role_required('admin')
+def admin_download_reports():
+    start_date = request.args.get('start_date', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
+    end_date = request.args.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+    
+    try:
+        cursor = get_db().cursor(dictionary=True)
+        
+        # Get payment data with order details
+        cursor.execute("""
+            SELECT 
+                o.id as order_id,
+                o.total_amount,
+                o.order_time,
+                u.username as customer_username,
+                o.status,
+                pm.name as payment_method,
+                op.status as payment_status,
+                op.amount as payment_amount,
+                op.payment_time
+            FROM orders o
+            JOIN users u ON o.customer_id = u.id
+            LEFT JOIN order_payments op ON o.id = op.order_id
+            LEFT JOIN payment_methods pm ON op.payment_method_id = pm.id
+            WHERE DATE(o.order_time) BETWEEN %s AND %s
+            ORDER BY o.order_time DESC
+        """, (start_date, end_date))
+        
+        # Create CSV
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Order ID', 'Total Amount', 'Order Time', 'Customer', 'Status', 
+                        'Payment Method', 'Payment Status', 'Payment Amount', 'Payment Time'])
+        
+        # Write data
+        for row in cursor.fetchall():
+            writer.writerow([
+                row['order_id'],
+                row['total_amount'],
+                row['order_time'].strftime('%Y-%m-%d %H:%M:%S'),
+                row['customer_username'],
+                row['status'],
+                row['payment_method'],
+                row['payment_status'],
+                row['payment_amount'],
+                row['payment_time'].strftime('%Y-%m-%d %H:%M:%S') if row['payment_time'] else 'N/A'
+            ])
+        
+        # Prepare response
+        output.seek(0)
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename=payment_reports_{start_date}_to_{end_date}.csv"}
+        )
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error: {str(e)}', 'danger')
+        return redirect(url_for('admin_reports'))
     finally:
         cursor.close()
 

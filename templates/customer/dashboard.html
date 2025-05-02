@@ -3,10 +3,120 @@
 {% block title %}Customer Dashboard{% endblock %}
 
 {% block content %}
-  <h2>Welcome, {{ username }}! (Customer)</h2>
-  <p>What would you like to do?</p>
-  <ul>
-    <li><a href="{{ url_for('customer_make_reservation') }}">Make a Reservation</a></li>
-    <li><a href="{{ url_for('customer_view_reservations') }}">View Past Reservations & Loyalty Points</a></li>
-    </ul>
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-4">
+        <h2>Welcome, {{ username }}! (Customer)</h2>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Your Stats</h5>
+                    <div class="d-flex justify-content-around">
+                        <div class="stat-item">
+                            <h3 class="mb-0">{{ loyalty_points }}</h3>
+                            <p class="text-muted mb-0">Loyalty Points</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a href="{{ url_for('customer_make_reservation') }}" class="btn btn-primary button-link">Make a Reservation</a>
+                        <a href="{{ url_for('customer_view_reservations') }}" class="btn btn-info button-link">View Reservations & Points</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Reservations -->
+    {% if active_reservations %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upcoming Reservations</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Guests</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in active_reservations %}
+                                <tr>
+                                    <td>{{ reservation.reservation_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ reservation.num_guests }}</td>
+                                    <td>{{ reservation.status }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    transition: none;
+}
+.card:hover {
+    transform: none;
+}
+.btn {
+    padding: 0.5rem 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.card-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.stat-item {
+    padding: 1rem;
+}
+.stat-item h3 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+.table {
+    background: transparent;
+    margin-bottom: 0;
+}
+.table thead th {
+    background: rgba(245, 240, 225, 0.9);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.5);
+}
+.table tbody tr {
+    background: rgba(255, 255, 255, 0.7);
+}
+.table tbody tr:hover {
+    background: rgba(245, 240, 225, 0.7);
+}
+.table tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(214, 176, 132, 0.2);
+}
+</style>
 {% endblock %}

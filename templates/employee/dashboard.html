@@ -3,12 +3,38 @@
 {% block title %}Employee Dashboard{% endblock %}
 
 {% block content %}
-  <h2>Welcome, {{ username }}! (Employee)</h2>
-  <p>Employee Actions:</p>
-  <ul>
-    <li><a href="{{ url_for('employee_add_customer') }}">Add New Customer</a></li>
-    <li><a href="{{ url_for('employee_add_reservation') }}">Add Reservation for Customer</a></li>
-    <li><a href="{{ url_for('employee_view_reservations') }}">View All Reservations</a></li>
-    <li><a href="{{ url_for('employee_view_customers') }}">View Customers</a></li>
-    </ul>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome, {{ username }}! (Employee)</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <div class="d-flex justify-content-between align-items-center" style="max-width: 100%; overflow-x: auto;">
+                <a href="{{ url_for('employee_add_customer') }}" class="btn btn-primary button-link" style="min-width: 150px;">Add New Customer</a>
+                <a href="{{ url_for('employee_add_reservation') }}" class="btn btn-info button-link" style="min-width: 150px;">Add Reservation</a>
+                <a href="{{ url_for('employee_view_reservations') }}" class="btn btn-success button-link" style="min-width: 150px;">View Reservations</a>
+                <a href="{{ url_for('employee_view_customers') }}" class="btn btn-secondary button-link" style="min-width: 150px;">View Customers</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: none;
+}
+.card:hover {
+    transform: none;
+}
+.btn {
+    padding: 0.5rem 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.card-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+</style>
 {% endblock %}

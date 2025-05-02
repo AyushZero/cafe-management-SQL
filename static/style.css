@@ -1,5 +1,226 @@
 /* static/style.css */
 
+/* Base Styles */
+:root {
+    --primary-gradient: linear-gradient(135deg, #8B4513, #A0522D);
+    --secondary-gradient: linear-gradient(135deg, #D2B48C, #DEB887);
+    --danger-gradient: linear-gradient(135deg, #CD5C5C, #DC143C);
+    --warning-gradient: linear-gradient(135deg, #DAA520, #FFD700);
+    --text-color: #f5f5f5;
+    --bg-color: #1a1a1a;
+    --card-bg: rgba(139, 69, 19, 0.3);
+    --card-bg-rgb: 139, 69, 19;
+    --border-color: rgba(210, 180, 140, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'New Spirit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Container Styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Header Styles */
+.header {
+    background: rgba(139, 69, 19, 0.4);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+.button-link {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: var(--primary-gradient);
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: transform 0.3s;
+}
+
+.button-link:hover {
+    transform: translateY(-2px);
+}
+
+.button-link-danger {
+    background: var(--danger-gradient);
+}
+
+.button-link-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    border-radius: 5px;
+    background: rgba(139, 69, 19, 0.3);
+    color: var(--text-color);
+    font-family: 'New Spirit', sans-serif;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: rgba(210, 180, 140, 0.5);
+    box-shadow: 0 0 0 2px rgba(210, 180, 140, 0.2);
+    background: rgba(139, 69, 19, 0.4);
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(139, 69, 19, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(210, 180, 140, 0.3);
+}
+
+.table th {
+    background: rgba(139, 69, 19, 0.4);
+    color: white;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover {
+    background: rgba(139, 69, 19, 0.4);
+}
+
+/* Card Styles */
+.card {
+    background: rgba(139, 69, 19, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(210, 180, 140, 0.3);
+}
+
+/* Alert Styles */
+.alert {
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    background: rgba(139, 69, 19, 0.3);
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: rgba(139, 69, 19, 0.4);
+    color: white;
+}
+
+.alert-danger {
+    background: rgba(205, 92, 92, 0.4);
+    color: white;
+}
+
+.alert-warning {
+    background: rgba(218, 165, 32, 0.4);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .button-link {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
 /* Basic Reset & Font */
 * {
     box-sizing: border-box;
