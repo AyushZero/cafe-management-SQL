@@ -826,35 +826,76 @@ def employee_add_item(reservation_id):
             (order_id, order_id)
         )
         
-        # Get the updated order total
-        cursor.execute("SELECT total_amount FROM orders WHERE id = %s", (order_id,))
-        order_total = cursor.fetchone()[0]
-        
-        # Award loyalty points (1 point per ₹100 spent)
-        points = int(order_total / 100)  # 1 point per ₹100 spent
-        if points > 0:
-            # Update loyalty points in users table
-            cursor.execute(
-                "UPDATE users SET loyalty_points = loyalty_points + %s WHERE id = %s",
-                (points, customer_id)
-            )
-            # Verify the update
-            cursor.execute("SELECT loyalty_points FROM users WHERE id = %s", (customer_id,))
-            updated_points = cursor.fetchone()[0]
-            print(f"Updated loyalty points for customer {customer_id} to {updated_points}")
-            flash(f'Awarded {points} loyalty points to customer', 'success')
-        
         get_db().commit()
         flash('Item added to order successfully', 'success')
         
     except Exception as e:
         get_db().rollback()
-        print(f"MySQL Error adding item/updating points: {e}")
+        print(f"MySQL Error adding item: {e}")
         flash('Error adding item to order', 'error')
     finally:
         cursor.close()
     
     return redirect(url_for('employee_add_order', reservation_id=reservation_id))
+
+@app.route('/employee/order/complete/<int:reservation_id>', methods=['POST'])
+@login_required
+@role_required('employee')
+def complete_order(reservation_id):
+    try:
+        cursor = get_db().cursor()
+        
+        # Get the order details
+        cursor.execute("""
+            SELECT o.id, o.customer_id, o.total_amount, r.status
+            FROM orders o
+            JOIN reservations r ON o.reservation_id = r.id
+            WHERE o.reservation_id = %s
+        """, (reservation_id,))
+        order_data = cursor.fetchone()
+        
+        if not order_data:
+            flash('Order not found', 'error')
+            return redirect(url_for('employee_view_reservations'))
+            
+        order_id, customer_id, total_amount, reservation_status = order_data
+        
+        if reservation_status == 'completed':
+            flash('This order has already been completed', 'warning')
+            return redirect(url_for('employee_view_reservations'))
+        
+        # Calculate loyalty points (10% of total amount)
+        points = decimal.Decimal(str(total_amount)) * decimal.Decimal('0.10')
+        
+        # Update loyalty points
+        cursor.execute(
+            "UPDATE users SET loyalty_points = loyalty_points + %s WHERE id = %s",
+            (points, customer_id)
+        )
+        
+        # Mark reservation as completed
+        cursor.execute(
+            "UPDATE reservations SET status = 'completed' WHERE id = %s",
+            (reservation_id,)
+        )
+        
+        # Mark order as delivered (using the correct ENUM value)
+        cursor.execute(
+            "UPDATE orders SET status = 'delivered' WHERE id = %s",
+            (order_id,)
+        )
+        
+        get_db().commit()
+        flash(f'Order completed successfully! Awarded {points:.2f} loyalty points to customer.', 'success')
+        
+    except Exception as e:
+        get_db().rollback()
+        print(f"MySQL Error completing order: {e}")
+        flash('Error completing order', 'error')
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('employee_view_reservations'))
 
 def init_loyalty_points_trigger():
     """Initialize the loyalty points trigger."""

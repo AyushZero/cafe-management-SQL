@@ -4,17 +4,14 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">Database Triggers</h1>
-    
-    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mb-4">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-    </a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Database Triggers</h2>
+    </div>
 
+    <!-- Triggers Information -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h2>Active Triggers</h2>
-        </div>
         <div class="card-body">
+            <h5 class="card-title">Active Triggers</h5>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -42,11 +39,10 @@
         </div>
     </div>
 
+    <!-- Trigger Effects -->
     <div class="card">
-        <div class="card-header">
-            <h2>Trigger Effects (Loyalty Points)</h2>
-        </div>
         <div class="card-body">
+            <h5 class="card-title">Trigger Effects</h5>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -61,15 +57,22 @@
                         {% for effect in trigger_effects %}
                         <tr>
                             <td>{{ effect.username }}</td>
-                            <td>{{ effect.loyalty_points }}</td>
+                            <td>{{ "%.2f"|format(effect.loyalty_points) }}</td>
                             <td>{{ effect.total_orders }}</td>
-                            <td>₹{{ "%.2f"|format(effect.total_spent or 0) }}</td>
+                            <td>₹{{ "%.2f"|format(effect.total_spent) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="button-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 </div>
 

@@ -5,39 +5,33 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Sales Reports</h2>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <h2>Reports</h2>
     </div>
 
-    <!-- Date Range Selection -->
+    <!-- Date Range Filter -->
     <div class="card mb-4">
         <div class="card-body">
+            <h5 class="card-title">Filter Reports</h5>
             <form method="GET" class="row g-3">
                 <div class="col-md-4">
                     <label for="start_date" class="form-label">Start Date</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" 
-                           value="{{ start_date }}" required>
+                    <input type="datetime-local" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
                 </div>
                 <div class="col-md-4">
                     <label for="end_date" class="form-label">End Date</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" 
-                           value="{{ end_date }}" required>
+                    <input type="datetime-local" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                    <button type="submit" class="btn btn-primary">Filter</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Daily Sales Summary -->
+    <!-- Daily Sales Report -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Daily Sales Summary</h5>
-        </div>
         <div class="card-body">
+            <h5 class="card-title">Daily Sales Report</h5>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -46,7 +40,6 @@
                             <th>Total Orders</th>
                             <th>Total Revenue</th>
                             <th>Unique Customers</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,11 +49,6 @@
                             <td>{{ sale.total_orders }}</td>
                             <td>₹{{ "%.2f"|format(sale.total_revenue) }}</td>
                             <td>{{ sale.unique_customers }}</td>
-                            <td>
-                                <a href="{{ url_for('download_report', date=sale.date) }}" class="btn btn-sm btn-outline-primary">
-                                    Download Report
-                                </a>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -71,10 +59,8 @@
 
     <!-- Top Selling Items -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Top Selling Items</h5>
-        </div>
         <div class="card-body">
+            <h5 class="card-title">Top Selling Items</h5>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -100,12 +86,10 @@
         </div>
     </div>
 
-    <!-- Top Customers -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Top Customers</h5>
-        </div>
+    <!-- Customer Loyalty Report -->
+    <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Customer Loyalty Report</h5>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -122,7 +106,7 @@
                             <td>{{ customer.username }}</td>
                             <td>{{ customer.total_orders }}</td>
                             <td>₹{{ "%.2f"|format(customer.total_spent) }}</td>
-                            <td>{{ customer.loyalty_points }}</td>
+                            <td>{{ "%.2f"|format(customer.loyalty_points) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -130,7 +114,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="button-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 </div>
+{% endblock %}
 
 {% block scripts %}
 <script>
@@ -148,5 +140,4 @@
         document.getElementById('end_date').value = new Date().toISOString().split('T')[0];
     }
 </script>
-{% endblock %}
 {% endblock %} 
