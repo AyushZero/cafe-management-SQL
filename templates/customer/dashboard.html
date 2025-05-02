@@ -32,7 +32,7 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Quick Actions</h5>
-                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center card-title">
                         <a href="{{ url_for('customer_make_reservation') }}" class="btn btn-primary button-link">Make a Reservation</a>
                         <a href="{{ url_for('customer_view_reservations') }}" class="btn btn-info button-link">View Reservations & Points</a>
                     </div>
@@ -78,6 +78,7 @@
 <style>
 .card {
     transition: none;
+    background: rgba(0, 0, 0, 0);
 }
 .card:hover {
     transform: none;
